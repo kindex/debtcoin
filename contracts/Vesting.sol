@@ -46,21 +46,45 @@ contract Vesting is Ownable {
         debtcoin.transferFrom(msg.sender, address(this), tokenAmount);
     }
 
-    /// @dev Target contract can call claim after vesting unlock is over.
-    function claim(uint wantValue) external {
-        require(msg.sender == targetAccount, 'Access denied');
+    function getUnlockedBalance() public view returns (uint){
         uint foundValue = 0;
 
         for (uint i = 0; i < lockedValues.length; i++) {
             LockedValue storage lv = lockedValues[i];
-            if (lv.unlockTimestamp <= block.timestamp && lv.lockedValue > 0) {
+            if (lv.unlockTimestamp <= block.timestamp) {
+                foundValue += lv.lockedValue;
+            }
+        }
+
+        return foundValue;
+    }
+
+    function claimAll() external {
+        // try to claim all balance
+        // debtcoin.balanceOf takes less gas than getUnlockedBalance()
+        claim(debtcoin.balanceOf(address(this)));
+    }
+
+    /// @dev Target contract can call claim after vesting unlock is over.
+    function claim(uint wantValue) public {
+        require(msg.sender == targetAccount, 'Access denied');
+        uint foundValue = 0;
+
+        for (uint i = 0; i < lockedValues.length; ) {
+            LockedValue storage lv = lockedValues[i];
+            if (lv.unlockTimestamp <= block.timestamp) {
                 uint amountToSend;
                 if (wantValue > lv.lockedValue) {
                     amountToSend = lv.lockedValue;
-                    lv.lockedValue = 0;
+                    //lv.lockedValue = 0;
+                    // remove lockedValues[i]
+                    lockedValues[i] = lockedValues[lockedValues.length-1];
+                    lockedValues.pop();
                 } else {
                     amountToSend = wantValue;
                     lv.lockedValue -= amountToSend;
+                    // process next lockedValues[i]
+                    i++;
                 }
                 wantValue -= amountToSend;
                 foundValue += amountToSend;
@@ -68,6 +92,8 @@ contract Vesting is Ownable {
                 if (wantValue == 0) {
                     break;
                 }
+            } else {
+                i++;
             }
         }
         require(foundValue > 0, "No unlocked tokens");

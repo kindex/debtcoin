@@ -94,8 +94,13 @@ def test_serial_lock(chain, holder, targetAccount, debtcoin, vesting, accounts):
     chain.sleep(100)
     chain.mine()
 
+    assert vesting.getUnlockedBalance() == 10
+
+
     vesting.claim(1, {'from':targetAccount})
     assert debtcoin.balanceOf(targetAccount) == 1, "balance after claim"
+
+    assert vesting.getUnlockedBalance() == 9
 
     vesting.claim(8, {'from':targetAccount})
     assert debtcoin.balanceOf(targetAccount) == 9, "balance after claim"
@@ -111,12 +116,18 @@ def test_serial_lock(chain, holder, targetAccount, debtcoin, vesting, accounts):
     chain.sleep(200)
     chain.mine()
 
+    assert vesting.getUnlockedBalance() == 20
+
     # claim 2 locks
     vesting.claim(15, {'from':targetAccount})
     assert debtcoin.balanceOf(targetAccount) == 25, "balance after claim"
 
+    assert vesting.getUnlockedBalance() == 5
+
     chain.sleep(100)
     chain.mine()
+
+    assert vesting.getUnlockedBalance() == 15
 
     tx = vesting.claim(16, {'from':targetAccount})
     e = tx.events[0]
@@ -176,3 +187,40 @@ def test_access(chain, holder, targetAccount, debtcoin, vesting, accounts, deplo
         vesting.setTargetAccount(accounts[5], {'from': deployer})
     with reverts("Ownable: caller is not the owner"):
         vesting.transferOwnership(holder, {'from': deployer})
+
+def test_claim_all(chain, holder, targetAccount, debtcoin, vesting, accounts):
+    LOCK_DURATION = vesting.LOCK_DURATION()
+
+    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
+
+    vesting.lock(10, {'from':holder})
+
+    chain.sleep(100)
+    chain.mine()
+
+    vesting.lock(10, {'from':holder})
+
+    chain.sleep(100)
+    chain.mine()
+
+    vesting.lock(10, {'from':holder})
+
+    chain.sleep(100)
+    chain.mine()
+
+    vesting.lock(10, {'from':holder})
+
+    chain.sleep(LOCK_DURATION)
+    chain.mine()
+
+    assert vesting.getUnlockedBalance() == 40
+
+    vesting.claim(1, {'from':targetAccount})
+    assert debtcoin.balanceOf(targetAccount) == 1, "balance after claim"
+
+    assert vesting.getUnlockedBalance() == 39
+
+    vesting.claimAll({'from':targetAccount})
+    assert debtcoin.balanceOf(targetAccount) == 40, "balance after claim"
+
+    assert vesting.getUnlockedBalance() == 0
