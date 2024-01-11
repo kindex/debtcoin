@@ -30,9 +30,10 @@ contract Vesting is Ownable {
     event Locked(uint value, uint unlockTimestamp);
     event Claimed(address account, uint value);
 
-    constructor(IERC20 _debtcoin, address _targetAccount) {
+    constructor(IERC20 _debtcoin, address _owner, address _targetAccount) {
         debtcoin = _debtcoin;
         targetAccount = _targetAccount;
+        _transferOwnership(_owner);
     }
 
     /// @dev Start vesting for target account.

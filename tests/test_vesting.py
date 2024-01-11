@@ -153,7 +153,7 @@ def test_claim_checks(chain, holder, targetAccount, debtcoin, vesting, accounts)
     vesting.claim(1, {'from':targetAccount})
 
 
-def test_change_address(chain, holder, targetAccount, debtcoin, vesting, accounts, deployer):
+def test_change_address(chain, holder, targetAccount, debtcoin, vesting, accounts, deployer, owner):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
     debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
@@ -163,7 +163,7 @@ def test_change_address(chain, holder, targetAccount, debtcoin, vesting, account
     chain.mine()
 
     vesting.claim(1, {'from':targetAccount})
-    vesting.setTargetAccount(accounts[5], {'from': deployer})
+    vesting.setTargetAccount(accounts[5], {'from': owner})
     vesting.claim(2, {'from':accounts[5]})
 
     with reverts("Access denied"):
@@ -172,14 +172,21 @@ def test_change_address(chain, holder, targetAccount, debtcoin, vesting, account
     assert debtcoin.balanceOf(targetAccount) == 1, "after claim"
     assert debtcoin.balanceOf(accounts[5]) == 2, "after claim"
 
-def test_access(chain, holder, targetAccount, debtcoin, vesting, accounts, deployer):
+
+def test_access(chain, holder, targetAccount, debtcoin, vesting, accounts, deployer, owner):
 
     with reverts("Ownable: caller is not the owner"):
         vesting.setTargetAccount(accounts[5], {'from': accounts[5]})
     with reverts("Ownable: caller is not the owner"):
         vesting.transferOwnership(holder, {'from': accounts[5]})
+    with reverts("Ownable: caller is not the owner"):
+        vesting.transferOwnership(holder, {'from': holder})
+    with reverts("Ownable: caller is not the owner"):
+        vesting.transferOwnership(holder, {'from': deployer})
+    with reverts("Ownable: caller is not the owner"):
+        vesting.transferOwnership(holder, {'from': targetAccount})
 
-    vesting.transferOwnership(holder, {'from': deployer})
+    vesting.transferOwnership(holder, {'from': owner})
 
     vesting.setTargetAccount(accounts[5], {'from': holder})
 
@@ -187,6 +194,9 @@ def test_access(chain, holder, targetAccount, debtcoin, vesting, accounts, deplo
         vesting.setTargetAccount(accounts[5], {'from': deployer})
     with reverts("Ownable: caller is not the owner"):
         vesting.transferOwnership(holder, {'from': deployer})
+    with reverts("Ownable: caller is not the owner"):
+        vesting.transferOwnership(holder, {'from': owner})
+
 
 def test_claim_all(chain, holder, targetAccount, debtcoin, vesting, accounts):
     LOCK_DURATION = vesting.LOCK_DURATION()

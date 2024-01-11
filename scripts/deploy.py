@@ -5,7 +5,9 @@ PUBLISH_SOURCES=True
 private_key=os.getenv('DEBTCOIN_DEPLOYER_PRIVATE_KEY')
 accounts.add(private_key)
 
-HOLDER_ACCOUNT=accounts[0]
+HOLDER=''
+TARGET_ACCOUNT=''
+OWNER=''
 
 def main():
     print('Deployer account= {}'.format(accounts[0]))

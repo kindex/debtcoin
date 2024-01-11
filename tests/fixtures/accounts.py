@@ -12,3 +12,7 @@ def holder(accounts):
 def targetAccount(accounts):
     yield accounts[2]
 
+@pytest.fixture
+def owner(accounts):
+    yield accounts[3]
+
