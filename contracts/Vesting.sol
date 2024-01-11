@@ -13,7 +13,7 @@ import "OpenZeppelin/openzeppelin-contracts@4.8.3/contracts/access/Ownable.sol";
 contract Vesting is Ownable {
     IERC20 debtcoin;
 
-    uint constant public LOCK_DURATION = 183 days;
+    uint public LOCK_DURATION = 183 days;
 
     struct LockedValue {
         /// @dev Amount of locked tokens

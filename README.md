@@ -22,7 +22,7 @@ Setup environment variables:
 ```shell
 export DEBTCOIN_DEPLOYER_PRIVATE_KEY=<deployer_account_private_key>
 ```
-Set correct HOLDER_ACCOUNT in [deploy.py](scripts/deploy.py)
+Set correct OWNER, HOLDER and TARGET_ACCOUNT in [deploy.py](scripts/deploy.py)
 ```shell
 brownie run scripts/deploy.py --network=mainnet
 ```
@@ -31,6 +31,6 @@ brownie run scripts/deploy.py --network=mainnet
 
 1. Deploy
 1. holder calls ```debtcoin.approve(vesting, max_amount)```
-1. holder calls ```vesting.lock(targetAccount, amount, timeDurationSeconds)```
-1. targetAccount waits timeDurationSeconds
-1. targetAccount calls ```vesting.claim()```
+1. holder calls ```vesting.lock(amount)```
+1. targetAccount waits 183 days
+1. targetAccount calls ```vesting.claimAll()```

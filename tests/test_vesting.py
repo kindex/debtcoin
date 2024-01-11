@@ -234,3 +234,6 @@ def test_claim_all(chain, holder, targetAccount, debtcoin, vesting, accounts):
     assert debtcoin.balanceOf(targetAccount) == 40, "balance after claim"
 
     assert vesting.getUnlockedBalance() == 0
+
+def test_prod_settings(chain, holder, targetAccount, debtcoin, vesting, accounts):
+    assert vesting.LOCK_DURATION() == 183*24*60*60, '183 days'
