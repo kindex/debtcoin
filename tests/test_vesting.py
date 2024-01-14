@@ -185,6 +185,8 @@ def test_access(chain, holder, targetAccount, debtcoin, vesting, accounts, deplo
         vesting.transferOwnership(holder, {'from': deployer})
     with reverts("Ownable: caller is not the owner"):
         vesting.transferOwnership(holder, {'from': targetAccount})
+    with reverts("Ownable: caller is not the owner"):
+        vesting.withdrawERC20(debtcoin, {'from': targetAccount})
 
     vesting.transferOwnership(holder, {'from': owner})
 
@@ -196,6 +198,8 @@ def test_access(chain, holder, targetAccount, debtcoin, vesting, accounts, deplo
         vesting.transferOwnership(holder, {'from': deployer})
     with reverts("Ownable: caller is not the owner"):
         vesting.transferOwnership(holder, {'from': owner})
+    with reverts("Ownable: caller is not the owner"):
+        vesting.withdrawERC20(debtcoin, {'from': owner})
 
 
 def test_claim_all(chain, holder, targetAccount, debtcoin, vesting, accounts):
@@ -237,3 +241,28 @@ def test_claim_all(chain, holder, targetAccount, debtcoin, vesting, accounts):
 
 def test_prod_settings(chain, holder, targetAccount, debtcoin, vesting, accounts):
     assert vesting.LOCK_DURATION() == 183*24*60*60, '183 days'
+
+def test_withdraw(chain, holder, targetAccount, debtcoin, vesting, accounts, owner):
+    LOCK_DURATION = vesting.LOCK_DURATION()
+
+    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
+
+    debtcoin.transfer(vesting, 3, {'from':holder})
+
+    vesting.lock(10, {'from':holder})
+    chain.sleep(100)
+    chain.mine()
+    vesting.lock(10, {'from':holder})
+
+    assert debtcoin.balanceOf(owner) == 0, "balance before withdrawERC20"
+
+    debtcoin.transfer(vesting, 4, {'from':holder})
+
+    chain.sleep(LOCK_DURATION)
+    chain.mine()
+
+    vesting.withdrawERC20(debtcoin, {'from':owner})
+
+    assert debtcoin.balanceOf(owner) == 7, "balance after withdrawERC20"
+
+    assert vesting.getUnlockedBalance() == 20

@@ -105,4 +105,30 @@ contract Vesting is Ownable {
     function setTargetAccount(address newTargetAccount) external onlyOwner {
         targetAccount = newTargetAccount;
     }
+
+    function getTotalBalance() public view returns (uint){
+        uint foundValue = 0;
+
+        for (uint i = 0; i < lockedValues.length; i++) {
+            LockedValue storage lv = lockedValues[i];
+            foundValue += lv.lockedValue;
+        }
+
+        return foundValue;
+    }
+
+    /// @dev Owner can claim any tokens that are transferred to this contract address.
+    /// @dev Owner can claim only debtcoin amount, that is transferred to this contract, not locked by Lock function.
+    function withdrawERC20(IERC20 _tokenContract) external onlyOwner {
+        uint256 balance = _tokenContract.balanceOf(address(this));
+        if (_tokenContract == debtcoin) {
+            uint totalLocked = getTotalBalance();
+            if (totalLocked < balance) {
+                _tokenContract.transfer(msg.sender, balance - totalLocked);
+            }
+        } else {
+            _tokenContract.transfer(msg.sender, balance);
+        }
+    }
+
 }
