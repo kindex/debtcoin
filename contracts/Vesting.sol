@@ -60,9 +60,12 @@ contract Vesting is Ownable {
         return foundValue;
     }
 
+    /// @dev Try to claim all balance
+    ///      debtcoin.balanceOf takes less gas than getUnlockedBalance()
+    ///      In case of manual Debtcoin transfer to Vesting contract balance will be
+    ///      greater than claimable amount, but in this place it is not a problem, because
+    ///      claim returns only unlocked tokens.
     function claimAll() external {
-        // try to claim all balance
-        // debtcoin.balanceOf takes less gas than getUnlockedBalance()
         claim(debtcoin.balanceOf(address(this)));
     }
 

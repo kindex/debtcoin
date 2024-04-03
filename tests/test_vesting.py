@@ -7,33 +7,33 @@ LOGGER = logging.getLogger(__name__)
 def test_happy_path(chain, holder, targetAccount, debtcoin, vesting):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
-    assert debtcoin.balanceOf(holder) == 32_000_000_00, "initial balance"
+    assert debtcoin.balanceOf(holder) == 32_000_000_00000000, "initial balance"
     assert debtcoin.balanceOf(targetAccount) == 0, "initial balance"
     assert debtcoin.balanceOf(vesting) == 0, "initial balance"
 
-    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
-    tx = vesting.lock(2_000_000_00, {'from':holder})
+    debtcoin.approve(vesting, 32_000_000_00000000, {'from':holder})
+    tx = vesting.lock(2_000_000_00000000, {'from':holder})
 
     e = tx.events[0]
     assert e.name == 'Locked', tx.events
-    assert e['value'] == 2_000_000_00, e
+    assert e['value'] == 2_000_000_00000000, e
 
-    assert debtcoin.balanceOf(holder) == 30_000_000_00, "balance after lock"
+    assert debtcoin.balanceOf(holder) == 30_000_000_00000000, "balance after lock"
     assert debtcoin.balanceOf(targetAccount) == 0, "balance after lock"
-    assert debtcoin.balanceOf(vesting) == 2_000_000_00, "initial balance"
+    assert debtcoin.balanceOf(vesting) == 2_000_000_00000000, "initial balance"
 
     chain.sleep(LOCK_DURATION)
     chain.mine()
 
-    tx = vesting.claim(2_000_000_00, {'from':targetAccount})
+    tx = vesting.claim(2_000_000_00000000, {'from':targetAccount})
 
     e = tx.events[0]
     assert e.name == 'Claimed', tx.events
     assert e['account'] == targetAccount, e
-    assert e['value'] == 2_000_000_00, e
+    assert e['value'] == 2_000_000_00000000, e
 
-    assert debtcoin.balanceOf(holder) == 30_000_000_00, "balance after claim"
-    assert debtcoin.balanceOf(targetAccount) == 2_000_000_00, "balance after claim"
+    assert debtcoin.balanceOf(holder) == 30_000_000_00000000, "balance after claim"
+    assert debtcoin.balanceOf(targetAccount) == 2_000_000_00000000, "balance after claim"
     assert debtcoin.balanceOf(vesting) == 0, "initial balance"
 
 
@@ -41,29 +41,29 @@ def test_lock_checks(chain, holder, targetAccount, debtcoin, vesting, accounts):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
     with reverts("ERC20: insufficient allowance"):
-        vesting.lock(2_000_000_00, {'from':holder})
+        vesting.lock(2_000_000_00000000, {'from':holder})
 
     with reverts("ERC20: insufficient allowance"):
-        vesting.lock(2_000_000_00, {'from':accounts[5]})
+        vesting.lock(2_000_000_00000000, {'from':accounts[5]})
 
-    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
-    vesting.lock(2_000_000_00, {'from':holder})
+    debtcoin.approve(vesting, 32_000_000_00000000, {'from':holder})
+    vesting.lock(2_000_000_00000000, {'from':holder})
 
     # second lock
-    vesting.lock(2_000_000_00, {'from':holder})
+    vesting.lock(2_000_000_00000000, {'from':holder})
 
     chain.sleep(LOCK_DURATION)
     chain.mine()
 
-    vesting.claim(2_000_000_00, {'from':targetAccount})
+    vesting.claim(2_000_000_00000000, {'from':targetAccount})
 
     # can lock after claim
-    vesting.lock(2_000_000_00, {'from':holder})
+    vesting.lock(2_000_000_00000000, {'from':holder})
 
 def test_serial_lock(chain, holder, targetAccount, debtcoin, vesting, accounts):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
-    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
+    debtcoin.approve(vesting, 32_000_000_00000000, {'from':holder})
 
     vesting.lock(10, {'from':holder})
 
@@ -138,8 +138,8 @@ def test_serial_lock(chain, holder, targetAccount, debtcoin, vesting, accounts):
 def test_claim_checks(chain, holder, targetAccount, debtcoin, vesting, accounts):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
-    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
-    vesting.lock(2_000_000_00, {'from':holder})
+    debtcoin.approve(vesting, 32_000_000_00000000, {'from':holder})
+    vesting.lock(2_000_000_00000000, {'from':holder})
 
     chain.sleep(LOCK_DURATION)
     chain.mine()
@@ -156,8 +156,8 @@ def test_claim_checks(chain, holder, targetAccount, debtcoin, vesting, accounts)
 def test_change_address(chain, holder, targetAccount, debtcoin, vesting, accounts, deployer, owner):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
-    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
-    vesting.lock(2_000_000_00, {'from':holder})
+    debtcoin.approve(vesting, 32_000_000_00000000, {'from':holder})
+    vesting.lock(2_000_000_00000000, {'from':holder})
 
     chain.sleep(LOCK_DURATION)
     chain.mine()
@@ -205,7 +205,7 @@ def test_access(chain, holder, targetAccount, debtcoin, vesting, accounts, deplo
 def test_claim_all(chain, holder, targetAccount, debtcoin, vesting, accounts):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
-    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
+    debtcoin.approve(vesting, 32_000_000_0000000000, {'from':holder})
 
     vesting.lock(10, {'from':holder})
 
@@ -245,7 +245,7 @@ def test_prod_settings(chain, holder, targetAccount, debtcoin, vesting, accounts
 def test_withdraw(chain, holder, targetAccount, debtcoin, vesting, accounts, owner):
     LOCK_DURATION = vesting.LOCK_DURATION()
 
-    debtcoin.approve(vesting, 32_000_000_00, {'from':holder})
+    debtcoin.approve(vesting, 32_000_000_0000000000, {'from':holder})
 
     debtcoin.transfer(vesting, 3, {'from':holder})
 
